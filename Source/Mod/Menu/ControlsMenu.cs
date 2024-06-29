@@ -46,6 +46,7 @@ public class ControlsMenu : Menu
 		Add(new InputBind(Controls.CopyFile.Name, Controls.CopyFile, rootMenu, isForController) { RequiresBinding = true });
 		Add(new InputBind(Controls.CreateFile.Name, Controls.CreateFile, rootMenu, isForController) { RequiresBinding = true });
 		Add(new InputBind(Controls.DeleteFile.Name, Controls.DeleteFile, rootMenu, isForController) { RequiresBinding = true });
+		Add(new InputBind(Controls.RenameFile.Name, Controls.RenameFile, rootMenu, isForController) { RequiresBinding = true });
 		Add(new InputBind(Controls.ResetBindings.Name, Controls.ResetBindings, rootMenu, isForController) { RequiresBinding = true });
 		Add(new InputBind(Controls.ClearBindings.Name, Controls.ClearBindings, rootMenu, isForController) { RequiresBinding = true });
 		Add(new InputBind(Controls.Menu.Name + "Up", Controls.Menu.Vertical.Negative, rootMenu, isForController) { DeadZone = 0.5f, RequiresBinding = true });

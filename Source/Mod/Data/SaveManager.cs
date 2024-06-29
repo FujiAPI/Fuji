@@ -4,14 +4,14 @@ internal sealed class SaveManager
 {
 	internal static SaveManager Instance = new();
 
-	[DisallowHooks]
 	internal string GetLastLoadedSave()
 	{
-		if (File.Exists(Path.Join(App.UserPath, "save.metadata")))
-			return File.ReadAllText(Path.Join(App.UserPath, "save.metadata"));
+		if (File.Exists(Path.Join(App.UserPath, "Saves", "save.metadata")))
+			return File.ReadAllText(Path.Join(App.UserPath, "Saves", "save.metadata"));
 		else
 		{
-			File.WriteAllText(Path.Join(App.UserPath, "save.metadata"), Save.DefaultFileName);
+			Directory.CreateDirectory(Path.Join(App.UserPath, "Saves")); // Perform upgrade path for first-time launch 
+			File.WriteAllText(Path.Join(App.UserPath, "Saves", "save.metadata"), Save.DefaultFileName);
 			return Save.DefaultFileName;
 		}
 	}
@@ -19,41 +19,50 @@ internal sealed class SaveManager
 	[DisallowHooks]
 	internal void SetLastLoadedSave(string save_name)
 	{
-		if (File.Exists(Path.Join(App.UserPath, "save.metadata")))
-			File.WriteAllText(Path.Join(App.UserPath, "save.metadata"), save_name);
+		if (File.Exists(Path.Join(App.UserPath, "Saves", "save.metadata")))
+			File.WriteAllText(Path.Join(App.UserPath, "Saves", "save.metadata"), save_name);
 	}
 
-	[DisallowHooks]
 	internal List<string> GetSaves()
 	{
 		List<string> saves = new List<string>();
 
-		foreach (string savefile in Directory.GetFiles(App.UserPath))
+		foreach (string file in Directory.GetFiles(Path.Join(App.UserPath)))
+		{
+			string saveFileName = Path.GetFileName(file);
+			if (saveFileName.StartsWith("save") && saveFileName.EndsWith(".json"))
+			{
+				if (saveFileName == "save.json" && !Path.Exists(Path.Join(App.UserPath, "Saves", saveFileName)))
+					File.Copy(Path.Join(App.UserPath, saveFileName), Path.Join(App.UserPath, "Saves", saveFileName));
+				else if (!Path.Exists(Path.Join(App.UserPath, "Saves", saveFileName)))
+					File.Move(Path.Join(App.UserPath, saveFileName), Path.Join(App.UserPath, "Saves", saveFileName));
+			}
+		}
+
+		foreach (string savefile in Directory.GetFiles(Path.Join(App.UserPath, "Saves")))
 		{
 			var saveFileName = Path.GetFileName(savefile);
-			if (saveFileName.EndsWith(".json") && saveFileName.StartsWith("save"))
+			if (saveFileName.EndsWith(".json"))
 				saves.Add(saveFileName);
 		}
 
 		return saves;
 	}
 
-	[DisallowHooks]
 	internal void CopySave(string filename)
 	{
-		if (File.Exists(Path.Join(App.UserPath, filename)))
+		if (File.Exists(Path.Join(App.UserPath, "Saves", filename)))
 		{
 			string new_file_name = $"{filename.Split(".json")[0]}(copy).json";
-			File.Copy(Path.Join(App.UserPath, filename), Path.Join(App.UserPath, new_file_name));
+			File.Copy(Path.Join(App.UserPath, "Saves", filename), Path.Join(App.UserPath, "Saves", new_file_name));
 		}
 	}
 
-	[DisallowHooks]
 	internal void NewSave(string? name = null)
 	{
 		if (string.IsNullOrEmpty(name)) name = $"save_{GetSaveCount()}.json";
-		var savePath = Path.Join(App.UserPath, name);
-		var tempPath = Path.Join(App.UserPath, name + ".backup");
+		var savePath = Path.Join(App.UserPath, "Saves", name);
+		var tempPath = Path.Join(App.UserPath, "Saves", name + ".backup");
 
 		// first save to a temporary file
 		{
@@ -69,18 +78,45 @@ internal sealed class SaveManager
 		}
 	}
 
-	[DisallowHooks]
+	internal bool ChangeFileName(string originalFileName, string newFileName)
+	{
+		bool success = true;
+
+		foreach (string file in GetSaves())
+		{
+			if (file == originalFileName)
+			{
+				try
+				{
+					if (!newFileName.EndsWith(".json"))
+						newFileName += ".json";
+					File.Move(Path.Join(App.UserPath, "Saves", file), Path.Join(App.UserPath, "Saves", newFileName));
+					if (file == Save.Instance.FileName)
+						LoadSaveByFileName(newFileName);
+				}
+				catch (Exception e)
+				{
+					Log.Error($"Failed to rename save file {originalFileName} to {newFileName}");
+					Log.Error(e.ToString());
+
+					success = false;
+				}
+			}
+		}
+
+		return success;
+	}
+
 	internal int GetSaveCount()
 	{
 		return GetSaves().Count;
 	}
 
-	[DisallowHooks]
 	internal void DeleteSave(string save)
 	{
-		if (File.Exists(Path.Join(App.UserPath, save)))
+		if (File.Exists(Path.Join(App.UserPath, "Saves", save)))
 		{
-			File.Delete(Path.Join(App.UserPath, save));
+			File.Delete(Path.Join(App.UserPath, "Saves", save));
 		}
 
 		if (save == Save.DefaultFileName)
@@ -89,9 +125,12 @@ internal sealed class SaveManager
 		}
 	}
 
-	[DisallowHooks]
 	internal void LoadSaveByFileName(string fileName)
 	{
+		if (!GetSaves().Contains(fileName)) // Make file if it doesn't exist yet
+		{
+			NewSave(fileName);
+		}
 		Save.LoadSaveByFileName(fileName);
 		Instance.SetLastLoadedSave(fileName);
 	}

@@ -1,5 +1,4 @@
 using Celeste64.Mod;
-
 namespace Celeste64;
 
 public class Overworld : Scene
@@ -273,7 +272,10 @@ public class Overworld : Scene
 	public override void Update()
 	{
 		slide += (index - slide) * (1 - MathF.Pow(.001f, Time.Delta));
-		wobble += (Controls.Camera.Value - wobble) * (1 - MathF.Pow(.1f, Time.Delta));
+
+		if (!Paused)
+			wobble += (Controls.Camera.Value - wobble) * (1 - MathF.Pow(.1f, Time.Delta));
+
 		Calc.Approach(ref cameraCloseUpEase, state == States.Entering ? 1 : 0, Time.Delta);
 		Calc.Approach(ref selectedEase, state != States.Selecting ? 1 : 0, 8 * Time.Delta);
 
@@ -440,6 +442,15 @@ public class Overworld : Scene
 		}
 		else if (Paused)
 		{
+			/*
+			* Edge case handler for the OSK, since it has a special case for pressing Enter.
+			* Enter also happens to be a default binding for pausing. I wish I was kidding.
+			*/
+			if ((KeyboardHandler.Instance.GetPressedKey() is Keys.Enter or Keys.Enter2 or Keys.KeypadEnter) && pauseMenu?.CurrentMenu is OnScreenKeyboardMenu)
+			{
+				return;
+			}
+			
 			if (pauseMenu != null)
 			{
 				pauseMenu.Update();

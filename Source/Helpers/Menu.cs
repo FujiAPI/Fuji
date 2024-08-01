@@ -286,6 +286,47 @@ public class Menu
 		}
 	}
 
+	public class InputField : Item
+	{
+		public OnScreenKeyboardMenu keyboardMenu;
+
+		private Action<string> setter;
+		private Func<string> getter;
+
+		public Menu RootMenu { get; protected set; }
+
+		private string fieldText;
+		public override string Label => $"{LocString} : {getter()}";
+
+		public void SetFieldText(string text)
+		{
+			fieldText = text;
+			setter(fieldText);
+		}
+
+		public string GetFieldText()
+		{
+			return getter();
+		}
+
+		public override bool Pressed()
+		{
+			RootMenu.PushSubMenu(keyboardMenu);
+			return true;
+		}
+
+		public InputField(Loc.Localized locString, Action<string> set, Func<string> get, Menu rootMenu, Dictionary<string, string>? characters = null)
+		{
+			LocString = locString;
+			setter = set;
+			getter = get;
+			RootMenu = rootMenu;
+			fieldText = getter();
+			if (characters == null) characters = KeyboardHandler.AllCharactersList;
+			keyboardMenu = new OnScreenKeyboardMenu(rootMenu, this, characters);
+		}
+	}
+
 	public int Index;
 	public string Title = string.Empty;
 	public bool Focused = true;
@@ -298,7 +339,7 @@ public class Menu
 	public string DownSound = Sfx.ui_move;
 
 	public bool IsInMainMenu => submenus.Count <= 0;
-	protected Menu CurrentMenu => GetDeepestActiveSubmenu(this);
+	public Menu CurrentMenu => GetDeepestActiveSubmenu(this);
 
 	protected virtual int maxItemsCount { get; set; } = 12;
 	protected int scrolledAmount = 0;

@@ -14,6 +14,8 @@
 		"Create": "Create",
 		"Delete": "Delete",
 		"Copy": "Copy",
+		"Rename": "Rename",
+		"NewName": "New Name",
 		"Bind": "Bind",
 		"Reset": "Reset",
 		"Clear": "Clear",
@@ -93,8 +95,11 @@
 		"Skin.desc": "Choose a Skin to Wear",
 		"SaveCreateFile": "Create new file?",
 		"SaveDeleteFile": "Delete this file?",
-		"SaveDeleteDefaultFile": "Cannot fully delete default save file:'{0}'. Reset it to default instead?",
+		"SaveDeleteDefaultFile": "The file {0} cannot be deleted.\n\nThis may happen because the file is the only existing file,\nor because it is currently loaded.\n\nDo you want to reset to the default file instead?",
 		"SaveCopyFile": "Copy this file?",
+		"SaveRenameFile": "Renaming file: {0}",
+		"SaveRenameFailed": "Failed to rename... Check your log file for details\n(does the file already exist?)",
+		"OSKUserInstructions": "Press Enter on keyboard, or Back on controller to confirm.",
 		"FujiOptions": "Fuji Options...",
 		"FujiOptions.desc": "Configure Options for the Fuji Mod Loader",
 		"FujiWriteLog": "Write Log File",
@@ -121,7 +126,8 @@
 		"ModOptions": "Mod Options",
 		"ConfirmDisableMod": "Continue & Disable Mod",
 		"ModSafeDisableErrorMessage": "This mod can't be disabled because it would disable the level you're currently in.\nTry going to the main menu first.",
-		"QuitToMainMenu": "Quit to Main Menu"
+		"QuitToMainMenu": "Quit to Main Menu",
+		"KeyboardSpace": "Space"
 	},
 	"Dialog": {
 		"Granny1": [

@@ -1,4 +1,5 @@
-﻿using Celeste64.Mod.Data;
+﻿using Celeste64.Mod;
+using Celeste64.Mod.Data;
 
 namespace Celeste64;
 
@@ -21,6 +22,7 @@ public class SaveSelectionMenu : Menu
 	private Subtexture strawberryImage;
 
 	private List<string> saves;
+	private string renamedFileName = string.Empty;
 
 	internal SaveSelectionMenu(Menu? rootMenu)
 	{
@@ -108,19 +110,29 @@ public class SaveSelectionMenu : Menu
 		{
 			for (int j = 0; j < columns && CurrentPageStart + index < saves.Count; j++)
 			{
-				if (saves[CurrentPageStart + index] == Save.Instance.FileName && index == currentRow * columns + currentColumn) RenderCurrentSelectedSave(batch, saves[CurrentPageStart + index], new Vec2(sizeMin * j * 1.1f, sizeMin * i * 1.1f) + offset, size);
-				else if (saves[CurrentPageStart + index] == Save.Instance.FileName) RenderSelectedSave(batch, saves[CurrentPageStart + index], new Vec2(sizeMin * j * 1.1f, sizeMin * i * 1.1f) + offset, size);
+				if (saves[CurrentPageStart + index] == Save.Instance.FileName && index == currentRow * columns + currentColumn) RenderCurrentSelectedSave(batch, saves[CurrentPageStart + index].Replace(".json", string.Empty), new Vec2(sizeMin * j * 1.1f, sizeMin * i * 1.1f) + offset, size);
+				else if (saves[CurrentPageStart + index] == Save.Instance.FileName) RenderSelectedSave(batch, saves[CurrentPageStart + index].Replace(".json", string.Empty), new Vec2(sizeMin * j * 1.1f, sizeMin * i * 1.1f) + offset, size);
 				else if (index == currentRow * columns + currentColumn)
 				{
-					RenderCurrentSave(batch, saves[CurrentPageStart + index], new Vec2(sizeMin * j * 1.1f, sizeMin * i * 1.1f) + offset, size);
+					RenderCurrentSave(batch, saves[CurrentPageStart + index].Replace(".json", string.Empty), new Vec2(sizeMin * j * 1.1f, sizeMin * i * 1.1f) + offset, size);
 				}
 				else
 				{
-					RenderSave(batch, saves[CurrentPageStart + index], new Vec2(sizeMin * j * 1.1f, sizeMin * i * 1.1f) + offset, size);
+					RenderSave(batch, saves[CurrentPageStart + index].Replace(".json", string.Empty), new Vec2(sizeMin * j * 1.1f, sizeMin * i * 1.1f) + offset, size);
 				}
 				index++;
 			}
 		}
+	}
+
+	private void SetRename(string name)
+	{
+		renamedFileName = name;
+	}
+
+	private string GetRename()
+	{
+		return renamedFileName;
 	}
 
 	protected override void HandleInput()
@@ -204,7 +216,7 @@ public class SaveSelectionMenu : Menu
 		if (Controls.DeleteFile.Pressed)
 		{
 			Menu newMenu = new Menu(this);
-			if (saves[CurrentPageStart + CurrentIndex] == Save.DefaultFileName)
+			if (saves.Count == 1 || saves[CurrentPageStart + CurrentIndex] == Save.Instance.FileName)
 			{
 				newMenu.Title = string.Format(Loc.Str("SaveDeleteDefaultFile"), saves[CurrentPageStart + CurrentIndex]);
 			}
@@ -216,9 +228,9 @@ public class SaveSelectionMenu : Menu
 			{
 				if (Game.Instance.IsMidTransition) return;
 				SaveManager.Instance.DeleteSave(saves[CurrentPageStart + CurrentIndex]);
-				if (saves[CurrentPageStart + CurrentIndex] == Save.Instance.FileName)
+				if ((saves[CurrentPageStart + CurrentIndex] == Save.Instance.FileName) || (saves.Count == 1))
 				{
-					// If we delete the current save, load default and force a reload
+					// If we delete the current save or the last remaining save, load default and force a reload
 					SaveManager.Instance.LoadSaveByFileName(Save.DefaultFileName);
 					Game.Instance.Goto(new Transition()
 					{
@@ -247,8 +259,38 @@ public class SaveSelectionMenu : Menu
 				ResetSaves();
 				PopSubMenu();
 			}));
-			PushSubMenu(newMenu);
 			newMenu.Add(new Option("OptionsNo", () => PopSubMenu()));
+			PushSubMenu(newMenu);
+		}
+
+		if (Controls.RenameFile.Pressed)
+		{
+			Menu newMenu = new Menu(this);
+			newMenu.Title = string.Format(Loc.Str("SaveRenameFile"), saves[CurrentPageStart + CurrentIndex]);
+			Dictionary<string, string> characters = KeyboardHandler.AlphabetValues.Concat(KeyboardHandler.NumberRowValues).ToDictionary();
+			characters.Add("Space", " ");
+			newMenu.Add(new InputField(
+				"NewName",
+				(k) => SetRename(k),
+				GetRename,
+				newMenu, characters));
+			newMenu.Add(new Option("OptionsYes", () =>
+			{
+				bool renameSuccess = SaveManager.Instance.ChangeFileName(saves[CurrentPageStart + CurrentIndex], renamedFileName);
+				if (!renameSuccess)
+				{
+					Title = new Loc.Localized("SaveRenameFailed");
+				}
+				ResetSaves();
+				PopSubMenu();
+				renamedFileName = string.Empty;
+			}));
+			newMenu.Add(new Option("OptionsNo", () =>
+			{
+				renamedFileName = string.Empty;
+				PopSubMenu();
+			}));
+			PushSubMenu(newMenu);
 		}
 	}
 
@@ -280,6 +322,10 @@ public class SaveSelectionMenu : Menu
 			at.X -= width + 8 * Game.RelativeScale;
 
 			UI.Prompt(batch, Controls.CopyFile, Loc.Str("Copy"), at, out width, 1.0f);
+			at.X -= width + 8 * Game.RelativeScale;
+
+			UI.Prompt(batch, Controls.RenameFile, Loc.Str("Rename"), at, out _, 1.0f);
+
 			batch.PopMatrix();
 		}
 	}

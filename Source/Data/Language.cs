@@ -207,7 +207,9 @@ public class Language
 	{
 		get
 		{
-			if (Assets.Languages.TryGetValue(Settings.Language, out var lang))
+			// Use the current language from settings unless we are in the startup screen.
+			// In the startup screen, we want to assume english in case the language is in a mod that hasn't loaded yet.
+			if (Assets.Languages.TryGetValue(Settings.Language, out var lang) && Game.Instance.Scene is not Startup)
 				return lang;
 
 			if (Assets.Languages.TryGetValue("English", out lang))

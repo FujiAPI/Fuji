@@ -12,6 +12,9 @@ public class Titlescreen : Scene
 	{
 		model = new SkinnedModel(Assets.Models["logo"]);
 		Music = "event:/music/mus_title";
+
+		// Update the current language when titlescreen loads after all mods have finished loading.
+		Language.Current.Use();
 	}
 
 	public override void Update()

@@ -84,10 +84,7 @@ public class Startup : Scene
 
 		if (finishedLoading && !Game.Instance.IsMidTransition)
 		{
-      App.VSync = Settings.VSync;
-      
-			// Update the current language after all mods have finished loading.
-			Language.Current.Use();
+			App.VSync = Settings.VSync;
 
 			Log.Info($"Loaded Assets in {timer.ElapsedMilliseconds}ms");
 			ModManager.Instance.OnAssetsLoaded();

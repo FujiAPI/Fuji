@@ -6,7 +6,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <Version>0.7.1</Version>
+        <Version>0.7.2</Version>
         <PublishTrimmed>false</PublishTrimmed>
         <ApplicationIcon>..\fuji.ico</ApplicationIcon>
         <PackageIcon>..\fuji.png</PackageIcon>

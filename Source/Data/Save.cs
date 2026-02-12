@@ -114,8 +114,8 @@ public sealed class Save
 
 	internal static void SaveToFile()
 	{
-		var savePath = Path.Join(App.UserPath, Instance.FileName);
-		var tempPath = Path.Join(App.UserPath, Instance.FileName + ".backup");
+		var savePath = Path.Join(App.UserPath, "Saves", Instance.FileName);
+		var tempPath = Path.Join(App.UserPath, "Saves", Instance.FileName + ".backup");
 
 		// first save to a temporary file
 		{
@@ -138,7 +138,7 @@ public sealed class Save
 		if (Game.Instance.SavingState != SavingState.Ready) return;
 
 		if (fileName == string.Empty) fileName = DefaultFileName;
-		var saveFile = Path.Join(App.UserPath, fileName);
+		var saveFile = Path.Join(App.UserPath, "Saves", fileName);
 
 		if (File.Exists(saveFile))
 			Instance = Instance.Deserialize<Save_V02>(File.ReadAllText(saveFile)) ?? new();
